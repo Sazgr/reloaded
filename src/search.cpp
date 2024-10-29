@@ -254,6 +254,9 @@ int search(Position& position, Search_stack* ss, Search_data& sd, int depth, int
     for (int i{}; i < movelist.size(); ++i) {
         if (movelist[i] == ss->excluded) continue;
         if (!position.is_legal(movelist[i])) continue;
+        if (depth < 8 && !in_check && best_score > -18000 && legal_moves >= static_cast<int>(((lmp_base / 100.0) + (lmp_margin / 100.0) * depth * depth) / ((lmp_improving / 100.0) - improving))) {
+            break;
+        }
         if (!is_root && best_score > -18000) {
             if (movelist[i].captured() == 12 && !see(position, movelist[i], -spr_quiet_threshold * depth * depth)) continue;
         }
@@ -284,10 +287,6 @@ int search(Position& position, Search_stack* ss, Search_data& sd, int depth, int
         ss->move = movelist[i];
         bool gives_check = position.check();
         u64 prev_nodes = sd.nodes;
-        if (depth < 8 && !in_check && !gives_check && best_score > -18000 && legal_moves >= static_cast<int>(((lmp_base / 100.0) + (lmp_margin / 100.0) * depth * depth) / ((lmp_improving / 100.0) - improving))) {
-            position.undo_move<true>(movelist[i], sd.nnue);
-            break;
-        }
         ++sd.nodes;
         ++legal_moves;
         (ss + 1)->ply = ss->ply + 1;
